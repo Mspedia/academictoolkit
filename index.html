@@ -1,186 +1,1806 @@
-!DOCTYPE html
-html lang=en
-head
-  meta charset=UTF-8 
-  meta name=viewport content=width=device-width, initial-scale=1.0 
-  titleResearch365 Plannertitle
-  script src=httpswww.gstatic.comfirebasejs9.22.2firebase-app-compat.jsscript
-  script src=httpswww.gstatic.comfirebasejs9.22.2firebase-auth-compat.jsscript
-  style
-    body {
-      font-family 'Segoe UI', sans-serif;
-      background-color #f4f7fa;
-      margin 0;
-      padding 0;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcademiTools — The Researcher's Productivity Suite</title>
+<meta name="description" content="7 professional Excel toolkits built for faculty, PhD researchers & department heads. Stop tracking manually. Start achieving more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Instrument+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+
+:root {
+  --ink:       #0e0d0b;
+  --ink-2:     #2a2820;
+  --ink-3:     #4a4740;
+  --ink-4:     #7a7770;
+  --parchment: #f5f0e8;
+  --parchment-2: #ede7d8;
+  --parchment-3: #e2dace;
+  --gold:      #c8a84b;
+  --gold-lt:   #e8d5a3;
+  --gold-dk:   #8b6310;
+  --night:     #0c0b09;
+  --night-2:   #161410;
+  --night-3:   #201e19;
+  --teal:      #1e5c5c;
+  --teal-lt:   #2d8080;
+  --serif:     'Cormorant Garamond', Georgia, serif;
+  --sans:      'Instrument Sans', sans-serif;
+  --max:       1200px;
+  --r:         6px;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--parchment);
+  color: var(--ink);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+.cursor {
+  position: fixed;
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: multiply;
+}
+.cursor-ring {
+  position: fixed;
+  width: 36px; height: 36px;
+  border: 1px solid rgba(200,168,75,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform 0.12s ease, width 0.25s, height 0.25s, border-color 0.2s;
+}
+body:hover .cursor { opacity: 1; }
+a:hover ~ .cursor, button:hover ~ .cursor { width: 14px; height: 14px; }
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* ── REVEAL ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.9s cubic-bezier(0.22,1,0.36,1), transform 0.9s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal.visible { opacity: 1; transform: none; }
+.reveal-left {
+  opacity: 0; transform: translateX(-40px);
+  transition: opacity 0.9s cubic-bezier(0.22,1,0.36,1), transform 0.9s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal-left.visible { opacity: 1; transform: none; }
+.reveal-right {
+  opacity: 0; transform: translateX(40px);
+  transition: opacity 0.9s cubic-bezier(0.22,1,0.36,1), transform 0.9s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal-right.visible { opacity: 1; transform: none; }
+
+/* ── KEYFRAMES ── */
+@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+@keyframes slideUp { from { opacity:0; transform:translateY(32px) } to { opacity:1; transform:none } }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.05);opacity:0.7} }
+@keyframes spin-slow { to { transform: rotate(360deg) } }
+@keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes grain { 0%,100%{transform:translate(0,0)} 10%{transform:translate(-2%,-3%)} 20%{transform:translate(3%,1%)} 30%{transform:translate(-1%,4%)} 40%{transform:translate(2%,-2%)} 50%{transform:translate(-3%,2%)} 60%{transform:translate(1%,-1%)} 70%{transform:translate(-2%,3%)} 80%{transform:translate(3%,-3%)} 90%{transform:translate(-1%,1%)} }
+@keyframes scanline { 0%{top:-20%} 100%{top:110%} }
+
+/* ════════════════════════════════════════
+   HERO
+════════════════════════════════════════ */
+#hero {
+  min-height: 100vh;
+  background: var(--night);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Animated background orbs */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+.orb-1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(200,168,75,0.12) 0%, transparent 65%);
+  top: -200px; right: -150px;
+  animation: float 8s ease-in-out infinite;
+}
+.orb-2 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(30,92,92,0.18) 0%, transparent 65%);
+  bottom: -100px; left: -100px;
+  animation: float 11s ease-in-out infinite reverse;
+}
+.orb-3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(200,168,75,0.06) 0%, transparent 65%);
+  top: 50%; left: 40%;
+  animation: float 14s ease-in-out infinite 2s;
+}
+
+/* Fine grid */
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(200,168,75,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,168,75,0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+/* Diagonal accent line */
+.hero-diagonal {
+  position: absolute;
+  top: 0; right: 30%;
+  width: 1px; height: 100%;
+  background: linear-gradient(to bottom, transparent, rgba(200,168,75,0.15), transparent);
+  transform: skewX(-15deg);
+}
+
+.hero-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 10rem 2rem 6rem;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 6rem;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* Left column */
+.hero-overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2rem;
+  animation: fadeIn 1s ease both;
+}
+.hero-overline-line {
+  width: 36px; height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+}
+.hero-overline-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.hero-h1 {
+  font-family: var(--serif);
+  font-size: clamp(3.2rem, 6vw, 5.5rem);
+  color: #fff;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+  animation: slideUp 1s ease 0.1s both;
+}
+.hero-h1 em {
+  font-style: italic;
+  color: var(--gold-lt);
+  display: block;
+}
+.hero-h1 strong {
+  font-weight: 500;
+  color: #fff;
+  display: block;
+}
+
+.hero-rule {
+  width: 60px; height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+  margin-bottom: 1.5rem;
+  animation: slideUp 1s ease 0.2s both;
+}
+
+.hero-sub {
+  font-size: 1rem;
+  color: #ffffff;
+  line-height: 1.8;
+  max-width: 460px;
+  font-weight: 600;
+  margin-bottom: 2.5rem;
+  animation: slideUp 1s ease 0.25s both;
+}
+
+.hero-btns {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+  animation: slideUp 1s ease 0.3s both;
+}
+
+.btn-gold {
+  background: var(--gold);
+  color: var(--night);
+  padding: 15px 32px;
+  border-radius: var(--r);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.3s;
+}
+.btn-gold::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(200,168,75,0.35); }
+.btn-gold:hover::after { transform: translateX(100%); }
+
+.btn-outline-light {
+  background: transparent;
+  color: #ffffff;
+  padding: 15px 32px;
+  border-radius: var(--r);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  cursor: none;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.btn-outline-light:hover { border-color: rgba(255,255,255,0.35); color: #fff; background: rgba(255,255,255,0.04); }
+
+/* Trust bar */
+.hero-trust {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: slideUp 1s ease 0.4s both;
+}
+.trust-avatars { display: flex; }
+.trust-av {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--night);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  margin-left: -9px;
+}
+.trust-av:first-child { margin-left: 0; }
+.av-a { background: #2a4a8a; }
+.av-b { background: var(--teal); }
+.av-c { background: #7a3a1e; }
+.av-d { background: #4a3a8a; }
+.trust-meta { font-size: 0.75rem; color: #ffffff; font-weight: 600; line-height: 1.4; }
+.trust-meta strong { color: #ffffff; font-weight: 700; }
+
+/* Right — floating dashboard */
+.hero-right {
+  position: relative;
+  animation: slideUp 1.2s ease 0.3s both;
+}
+
+.dashboard-card {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(200,168,75,0.18);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+  animation: float 6s ease-in-out infinite;
+}
+.dashboard-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,168,75,0.4), transparent);
+}
+
+.dc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.dc-title {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--gold-lt);
+  font-style: italic;
+}
+.dc-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(200,168,75,0.1);
+  border: 1px solid rgba(200,168,75,0.2);
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.dc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.78rem;
+}
+.dc-row:last-of-type { border-bottom: none; }
+.dc-name { color: #ffffff; font-weight: 600; }
+.dc-pill {
+  font-size: 0.62rem;
+  font-weight: 500;
+  padding: 2px 9px;
+  border-radius: 20px;
+}
+.p-done  { background: rgba(30,92,92,0.35); color: #7ecac8; }
+.p-prog  { background: rgba(200,168,75,0.15); color: var(--gold-lt); }
+.p-sub   { background: rgba(80,120,255,0.2); color: #99b5ff; }
+
+.dc-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.dc-stat-item { text-align: center; }
+.dc-stat-num {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  color: var(--gold-lt);
+  font-style: italic;
+  line-height: 1;
+}
+.dc-stat-lbl { font-size: 0.6rem; color: #ffffff; font-weight: 600; margin-top: 2px; }
+
+/* Floating mini cards */
+.mini-card {
+  position: absolute;
+  background: rgba(30,92,92,0.25);
+  border: 1px solid rgba(30,92,92,0.5);
+  border-radius: 8px;
+  padding: 10px 14px;
+  backdrop-filter: blur(12px);
+}
+.mini-1 {
+  right: -60px; top: 40px;
+  animation: float 5s ease-in-out infinite 1.5s;
+}
+.mini-2 {
+  left: -50px; bottom: 60px;
+  animation: float 7s ease-in-out infinite 0.5s;
+}
+.mini-label { font-size: 0.6rem; color: #ffffff; font-weight: 600; margin-bottom: 3px; }
+.mini-value { font-size: 0.82rem; font-weight: 500; color: #7ecac8; }
+
+/* ── MARQUEE STRIP ── */
+.marquee-strip {
+  background: var(--gold);
+  padding: 10px 0;
+  overflow: hidden;
+  position: relative;
+}
+.marquee-inner {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 22s linear infinite;
+}
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 2.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--night);
+}
+.marquee-sep { opacity: 0.4; font-size: 0.5rem; }
+
+/* ════════════════════════════════════════
+   SECTION: PROBLEM
+════════════════════════════════════════ */
+#problem {
+  background: var(--parchment);
+  padding: 8rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+#problem::before {
+  content: '"';
+  position: absolute;
+  font-family: var(--serif);
+  font-size: 30rem;
+  color: rgba(200,168,75,0.04);
+  top: -4rem; right: -2rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.problem-wrap {
+  max-width: var(--max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 8rem;
+  align-items: start;
+}
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-dk);
+  margin-bottom: 1.5rem;
+}
+.section-label-line { width: 24px; height: 1px; background: var(--gold); }
+
+.section-h2 {
+  font-family: var(--serif);
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  color: var(--ink);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 300;
+  margin-bottom: 1.25rem;
+}
+.section-h2 em { font-style: italic; color: var(--gold-dk); }
+
+.section-body {
+  font-size: 0.95rem;
+  color: var(--ink-3);
+  line-height: 1.85;
+  font-weight: 300;
+}
+
+/* Problem cards */
+.problem-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.pc {
+  background: #fff;
+  border: 1px solid rgba(14,13,11,0.07);
+  border-radius: var(--r);
+  padding: 1.4rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s, border-color 0.3s;
+}
+.pc:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(14,13,11,0.08); border-color: rgba(200,168,75,0.3); }
+.pc::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--teal-lt));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+.pc:hover::after { transform: scaleX(1); }
+.pc-ico { font-size: 1.4rem; margin-bottom: 10px; }
+.pc-ttl { font-weight: 600; font-size: 0.85rem; color: var(--ink); margin-bottom: 5px; }
+.pc-dsc { font-size: 0.78rem; color: var(--ink-4); line-height: 1.55; }
+.pc.span2 { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 1rem; }
+.pc.span2 .pc-ico { flex-shrink: 0; margin-bottom: 0; margin-top: 2px; }
+
+/* ════════════════════════════════════════
+   SECTION: PRODUCTS
+════════════════════════════════════════ */
+#products {
+  background: var(--night);
+  padding: 8rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+#products::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(200,168,75,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,168,75,0.025) 1px, transparent 1px);
+  background-size: 88px 88px;
+}
+
+.products-hd {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 5rem;
+  position: relative; z-index: 2;
+}
+.products-hd .section-label { justify-content: center; }
+.products-hd .section-h2 { color: #fff; }
+.products-hd .section-body { color: #ffffff; font-weight: 600; }
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: var(--max);
+  margin: 0 auto;
+  position: relative; z-index: 2;
+}
+
+.prod-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s, border-color 0.3s, transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  cursor: none;
+}
+.prod-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(200,168,75,0.3);
+  transform: translateY(-5px);
+}
+.prod-card::before {
+  content: attr(data-num);
+  position: absolute;
+  top: 1.5rem; right: 1.75rem;
+  font-family: var(--serif);
+  font-size: 3.5rem;
+  font-style: italic;
+  color: rgba(255,255,255,0.03);
+  line-height: 1;
+  pointer-events: none;
+  transition: color 0.3s;
+}
+.prod-card:hover::before { color: rgba(200,168,75,0.06); }
+.prod-card.hero-prod {
+  grid-column: span 2;
+  background: rgba(200,168,75,0.05);
+  border-color: rgba(200,168,75,0.2);
+}
+.prod-card.hero-prod:hover { background: rgba(200,168,75,0.08); border-color: rgba(200,168,75,0.4); }
+
+.prod-accent { width: 36px; height: 2px; margin-bottom: 1.25rem; background: linear-gradient(90deg, var(--gold), transparent); }
+.prod-icon { font-size: 1.8rem; margin-bottom: 0.75rem; }
+.prod-tag {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 1;
+  border: 1px solid rgba(200,168,75,0.2);
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-bottom: 0.75rem;
+}
+.prod-tag.best { opacity: 1; background: rgba(200,168,75,0.1); border-color: rgba(200,168,75,0.4); }
+.prod-name {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  color: #fff;
+  font-style: italic;
+  margin-bottom: 0.6rem;
+  line-height: 1.25;
+}
+.prod-desc {
+  font-size: 0.8rem;
+  color: #ffffff;
+  font-weight: 600;
+  line-height: 1.65;
+  margin-bottom: 1rem;
+}
+.prod-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.prod-pill {
+  font-size: 0.65rem;
+  color: #ffffff;
+  font-weight: 600;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.hero-prod-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+}
+
+/* ════════════════════════════════════════
+   SECTION: HOW IT WORKS
+════════════════════════════════════════ */
+#features {
+  background: var(--parchment-2);
+  padding: 8rem 2rem;
+}
+
+.features-hd {
+  text-align: center;
+  max-width: 520px;
+  margin: 0 auto 6rem;
+}
+
+.steps {
+  max-width: var(--max);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6rem;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  align-items: center;
+}
+.step.flip { direction: rtl; }
+.step.flip > * { direction: ltr; }
+
+.step-num {
+  font-family: var(--serif);
+  font-size: 6rem;
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(14,13,11,0.04);
+  line-height: 1;
+  margin-bottom: -1.25rem;
+}
+.step-title {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 2.5vw, 2.1rem);
+  color: var(--ink);
+  font-weight: 300;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+}
+.step-body {
+  font-size: 0.9rem;
+  color: var(--ink-3);
+  line-height: 1.85;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+}
+.step-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.step-list li {
+  font-size: 0.83rem;
+  color: var(--ink-3);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.step-check { color: var(--teal); font-weight: 700; flex-shrink: 0; }
+
+/* Mockup window */
+.mockup {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid rgba(14,13,11,0.09);
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(14,13,11,0.1), 0 4px 16px rgba(14,13,11,0.06);
+}
+.mock-bar {
+  background: var(--night);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.m-dot { width: 8px; height: 8px; border-radius: 50%; }
+.m-r{background:#ff5f57} .m-y{background:#ffbd2e} .m-g{background:#28c840}
+.mock-tab {
+  flex: 1;
+  text-align: center;
+  font-size: 0.65rem;
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.mock-body { padding: 1.25rem; }
+.mock-thead {
+  display: grid;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-4);
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(14,13,11,0.08);
+  margin-bottom: 4px;
+}
+.mock-tr {
+  display: grid;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(14,13,11,0.04);
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  align-items: center;
+  transition: background 0.15s;
+}
+.mock-tr:hover { background: rgba(14,13,11,0.02); padding-left: 4px; }
+.s-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.6rem;
+  font-weight: 500;
+}
+.sp-g{background:#d4f0e8;color:#1a5e3a}
+.sp-y{background:#fef3c7;color:#92400e}
+.sp-b{background:#dbeafe;color:#1e40af}
+.sp-r{background:#fee2e2;color:#991b1b}
+.mock-prog { height: 4px; background: rgba(14,13,11,0.06); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+.mock-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--teal-lt)); border-radius: 4px; }
+
+/* ════════════════════════════════════════
+   SECTION: TESTIMONIALS
+════════════════════════════════════════ */
+#testimonials {
+  background: var(--parchment);
+  padding: 8rem 2rem;
+  position: relative;
+}
+
+.testi-hd {
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto 5rem;
+}
+
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: var(--max);
+  margin: 0 auto;
+}
+
+.tcard {
+  background: #fff;
+  border: 1px solid rgba(14,13,11,0.07);
+  border-radius: 10px;
+  padding: 1.75rem;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s, border-color 0.3s;
+}
+.tcard:hover { transform: translateY(-5px); box-shadow: 0 20px 60px rgba(14,13,11,0.09); border-color: rgba(200,168,75,0.25); }
+.tcard.wide { grid-column: span 2; }
+.tcard.dark { background: var(--night); border-color: rgba(200,168,75,0.15); }
+.tcard.dark .tq-text { color: #ffffff; font-weight: 500; }
+.tcard.dark .ta-name { color: #fff; }
+.tcard.dark .ta-role { color: #ffffff; font-weight: 600; }
+
+.tq-mark {
+  font-family: var(--serif);
+  font-size: 5rem;
+  line-height: 0.6;
+  margin-bottom: 0.75rem;
+  color: rgba(200,168,75,0.25);
+  font-style: italic;
+}
+.tcard.dark .tq-mark { color: rgba(200,168,75,0.2); }
+.tq-stars { color: var(--gold); font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 8px; }
+.tq-text {
+  font-size: 0.88rem;
+  color: var(--ink-3);
+  line-height: 1.75;
+  font-style: italic;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+}
+.tcard-author { display: flex; align-items: center; gap: 10px; }
+.ta-av {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 600; color: #fff;
+  flex-shrink: 0;
+}
+.ta-name { font-weight: 500; font-size: 0.82rem; color: var(--ink); }
+.ta-role { font-size: 0.72rem; color: var(--ink-4); }
+
+/* Stats band */
+.stats-band {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(14,13,11,0.07);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 3rem auto 0;
+  max-width: var(--max);
+}
+.stat-c {
+  background: #fff;
+  padding: 2.25rem;
+  text-align: center;
+}
+.stat-num {
+  font-family: var(--serif);
+  font-size: 3rem;
+  color: var(--ink);
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+.stat-num span { color: var(--gold-dk); }
+.stat-lbl { font-size: 0.75rem; color: var(--ink-4); }
+
+/* ════════════════════════════════════════
+   SECTION: PRICING
+════════════════════════════════════════ */
+#pricing {
+  background: var(--night-2);
+  padding: 8rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.pricing-glow {
+  position: absolute;
+  bottom: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 800px; height: 400px;
+  background: radial-gradient(ellipse, rgba(200,168,75,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.pricing-hd {
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto 5rem;
+  position: relative; z-index: 2;
+}
+.pricing-hd .section-label { justify-content: center; }
+.pricing-hd .section-h2 { color: #fff; }
+.pricing-hd .section-body { color: #ffffff; font-weight: 600; }
+
+.pricing-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative; z-index: 2;
+}
+
+.p-card {
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.025);
+  padding: 2.25rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s, border-color 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.p-card:hover { transform: translateY(-5px); }
+.p-card.featured {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.p-card.featured::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.p-badge {
+  position: absolute;
+  top: -1px; right: 2rem;
+  background: var(--night);
+  color: var(--gold-lt);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 0 0 6px 6px;
+}
+
+.p-name {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-lt);
+  margin-bottom: 1.25rem;
+  opacity: 1;
+}
+.p-card.featured .p-name { color: var(--night); opacity: 0.6; }
+
+.p-price {
+  font-family: var(--serif);
+  font-size: 3rem;
+  font-weight: 300;
+  font-style: italic;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.p-card.featured .p-price { color: var(--night); }
+.p-price sup { font-size: 1.2rem; font-style: normal; vertical-align: super; opacity: 0.7; }
+.p-price sub { font-size: 0.9rem; font-style: normal; font-family: var(--sans); font-weight: 300; opacity: 0.5; }
+
+.p-desc { font-size: 0.78rem; color: #ffffff; font-weight: 600; margin-bottom: 1.5rem; }
+.p-card.featured .p-desc { color: rgba(14,13,11,0.5); }
+
+.p-divider { height: 1px; background: rgba(255,255,255,0.07); margin-bottom: 1.5rem; }
+.p-card.featured .p-divider { background: rgba(14,13,11,0.12); }
+
+.p-feats { list-style: none; flex: 1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 2rem; }
+.p-feat {
+  font-size: 0.8rem;
+  color: #ffffff;
+  font-weight: 600;
+  display: flex; align-items: flex-start; gap: 9px;
+}
+.p-feat::before { content:'✓'; color: var(--gold); font-weight: 700; flex-shrink: 0; }
+.p-feat.off { opacity: 0.3; }
+.p-feat.off::before { content:'—'; color: rgba(255,255,255,0.2); }
+.p-card.featured .p-feat { color: rgba(14,13,11,0.7); }
+.p-card.featured .p-feat::before { color: var(--night); }
+
+.btn-p-dark {
+  background: var(--night);
+  color: var(--gold-lt);
+  padding: 13px 24px;
+  border-radius: var(--r);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  border: none;
+  cursor: none;
+  transition: opacity 0.2s;
+  letter-spacing: 0.3px;
+}
+.btn-p-dark:hover { opacity: 0.85; }
+
+.btn-p-ghost {
+  background: transparent;
+  color: #ffffff;
+  padding: 13px 24px;
+  border-radius: var(--r);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  border: 1px solid rgba(255,255,255,0.35);
+  cursor: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-p-ghost:hover { border-color: rgba(255,255,255,0.35); color: #fff; }
+
+.p-note {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #ffffff;
+  font-weight: 600;
+  margin-top: 2rem;
+  position: relative; z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.p-note-sep { opacity: 0.4; }
+
+/* ════════════════════════════════════════
+   SECTION: FAQ
+════════════════════════════════════════ */
+#faq {
+  background: var(--parchment-3);
+  padding: 8rem 2rem;
+}
+.faq-wrap { max-width: 720px; margin: 0 auto; }
+.faq-hd { text-align: center; margin-bottom: 4rem; }
+
+.faq-item { border-bottom: 1px solid rgba(14,13,11,0.1); }
+.faq-q {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: none;
+  padding: 1.35rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.4;
+  transition: color 0.2s;
+}
+.faq-q:hover { color: var(--teal); }
+.faq-ico {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--gold-lt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), background 0.2s;
+}
+.faq-item.open .faq-ico { transform: rotate(45deg); background: var(--teal); }
+.faq-a {
+  font-size: 0.85rem;
+  color: var(--ink-3);
+  line-height: 1.8;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s cubic-bezier(0.22,1,0.36,1), padding 0.3s;
+  font-weight: 300;
+}
+.faq-item.open .faq-a { max-height: 300px; padding-bottom: 1.35rem; }
+
+/* ════════════════════════════════════════
+   SECTION: CTA FINAL
+════════════════════════════════════════ */
+#cta-final {
+  background: var(--night);
+  padding: 9rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-bg-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(200,168,75,0.06);
+  left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+.ring-1 { width: 400px; height: 400px; }
+.ring-2 { width: 650px; height: 650px; animation: spin-slow 60s linear infinite; }
+.ring-3 { width: 900px; height: 900px; border-style: dashed; opacity: 0.5; }
+
+.cta-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative; z-index: 2;
+}
+.cta-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.65rem; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold); opacity: 0.7;
+  margin-bottom: 1.75rem;
+}
+.cta-h2 {
+  font-family: var(--serif);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 300;
+  margin-bottom: 1.25rem;
+}
+.cta-h2 em { color: var(--gold-lt); font-style: italic; }
+.cta-sub {
+  font-size: 0.95rem;
+  color: #ffffff;
+  line-height: 1.8;
+  font-weight: 600;
+  margin-bottom: 3rem;
+}
+.cta-btns { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+.btn-cta-gold {
+  background: var(--gold);
+  color: var(--night);
+  padding: 17px 36px;
+  border-radius: var(--r);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  border: none; cursor: none;
+  position: relative; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.3s;
+  letter-spacing: 0.3px;
+}
+.btn-cta-gold:hover { transform: translateY(-3px); box-shadow: 0 16px 50px rgba(200,168,75,0.35); }
+
+.btn-cta-outline {
+  background: transparent; color: #ffffff;
+  padding: 17px 36px; border-radius: var(--r);
+  font-size: 0.85rem; font-weight: 700;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid rgba(255,255,255,0.15); cursor: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-cta-outline:hover { border-color: rgba(255,255,255,0.35); color: #fff; }
+
+.cta-guarantee {
+  margin-top: 2rem;
+  font-size: 0.75rem; color: #ffffff; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;
+}
+.cta-guarantee-sep { opacity: 0.3; }
+.cta-guarantee-check { color: var(--teal-lt); }
+
+/* ════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════ */
+footer {
+  background: var(--night);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 3rem 2rem;
+  color: #ffffff;
+  font-weight: 600;
+}
+.footer-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.footer-logo {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  color: var(--gold);
+  font-style: italic;
+}
+.footer-copy { font-size: 0.75rem; }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.75rem; color: #ffffff; font-weight: 600; text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--gold); }
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 3rem; }
+  .mini-card { display: none; }
+  .problem-wrap { grid-template-columns: 1fr; gap: 3rem; }
+  .products-grid { grid-template-columns: 1fr 1fr; }
+  .prod-card.hero-prod { grid-column: span 2; }
+  .hero-prod-inner { grid-template-columns: 1fr; }
+  .step, .step.flip { grid-template-columns: 1fr; direction: ltr; gap: 3rem; }
+  .testi-grid { grid-template-columns: 1fr; }
+  .tcard.wide { grid-column: span 1; }
+  .stats-band { grid-template-columns: 1fr 1fr; }
+  .pricing-cards { grid-template-columns: 1fr; max-width: 400px; }
+}
+@media (max-width: 600px) {
+  .products-grid { grid-template-columns: 1fr; }
+  .prod-card.hero-prod { grid-column: span 1; }
+  .problem-cards { grid-template-columns: 1fr; }
+  .stats-band { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<!-- ══════════════════════════════════
+     HERO
+══════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-diagonal"></div>
+  <div class="hero-orb orb-1"></div>
+  <div class="hero-orb orb-2"></div>
+  <div class="hero-orb orb-3"></div>
+
+  <div class="hero-inner">
+    <!-- Left -->
+    <div>
+      <div class="hero-overline">
+        <div class="hero-overline-line"></div>
+        <div class="hero-overline-dot"></div>
+        7 Professional Excel Toolkits
+      </div>
+      <h1 class="hero-h1">
+        <strong>The researcher's</strong>
+        <em>operating system.</em>
+      </h1>
+      <div class="hero-rule"></div>
+      <p class="hero-sub">Stop juggling endless spreadsheets, sticky notes, and email threads. AcademiTools gives faculty, PhD researchers, and department heads a complete professional system — automated, organised, and ready to use.</p>
+      <div class="hero-btns">
+        <a href="https://rzp.io/rzp/m7B71uy" target="_blank" rel="noopener" class="btn-gold">Download the Full Suite — ₹999 ↓</a>
+        <a href="https://rzp.io/rzp/m7B71uy" target="_blank" rel="noopener" class="btn-outline-light">Explore the Tools →</a>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-avatars">
+          <div class="trust-av av-a">AR</div>
+          <div class="trust-av av-b">SK</div>
+          <div class="trust-av av-c">NB</div>
+          <div class="trust-av av-d">LM</div>
+        </div>
+        <div class="trust-meta">
+          <strong>Trusted by 2,400+ academics</strong><br>worldwide — 4.9★ average rating
+        </div>
+      </div>
+    </div>
+
+    <!-- Right — floating dashboard -->
+    <div class="hero-right">
+      <div class="dashboard-card">
+        <div class="dc-header">
+          <div class="dc-title">Research Dashboard</div>
+          <div class="dc-badge">Live</div>
+        </div>
+        <div class="dc-row"><span class="dc-name">Grant Application — FRGS</span><span class="dc-pill p-prog">In Progress</span></div>
+        <div class="dc-row"><span class="dc-name">SCOPUS Article — Q1 Journal</span><span class="dc-pill p-done">Accepted</span></div>
+        <div class="dc-row"><span class="dc-name">Thesis Chapter 3 Draft</span><span class="dc-pill p-prog">Review</span></div>
+        <div class="dc-row"><span class="dc-name">Conference — ICML</span><span class="dc-pill p-sub">Submitted</span></div>
+        <div class="dc-row"><span class="dc-name">Literature Review — 84 papers</span><span class="dc-pill p-done">Complete</span></div>
+        <div class="dc-stats">
+          <div class="dc-stat-item"><div class="dc-stat-num">12</div><div class="dc-stat-lbl">Publications</div></div>
+          <div class="dc-stat-item"><div class="dc-stat-num">3</div><div class="dc-stat-lbl">Active Grants</div></div>
+          <div class="dc-stat-item"><div class="dc-stat-num">84</div><div class="dc-stat-lbl">Papers Reviewed</div></div>
+        </div>
+      </div>
+      <div class="mini-card mini-1"><div class="mini-label">Annual KPI</div><div class="mini-value">78% — On Track ↗</div></div>
+      <div class="mini-card mini-2"><div class="mini-label">Grant Balance</div><div class="mini-value">Rs. 304,000 remaining</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Marquee -->
+<div class="marquee-strip">
+  <div class="marquee-inner">
+    <span class="marquee-item">📊 Activity Tracker<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">📝 Article Submission<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">💰 Financial Suite<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">📚 Literature Review<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">🎓 Thesis Planner<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">🔬 Grant Manager<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">🗂️ Project System<span class="marquee-sep">✦</span></span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item">📊 Activity Tracker<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">📝 Article Submission<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">💰 Financial Suite<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">📚 Literature Review<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">🎓 Thesis Planner<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">🔬 Grant Manager<span class="marquee-sep">✦</span></span>
+    <span class="marquee-item">🗂️ Project System<span class="marquee-sep">✦</span></span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     PROBLEM
+══════════════════════════════════ -->
+<section id="problem">
+  <div class="problem-wrap">
+    <div class="reveal-left">
+      <div class="section-label"><div class="section-label-line"></div>The Problem</div>
+      <h2 class="section-h2">Academia has a hidden <em>productivity crisis.</em></h2>
+      <p class="section-body">We spoke to hundreds of faculty members, PhD candidates, and department heads. The issue wasn't funding or publishing pressure — it was the invisible weight of disorganisation. Hours lost every week to tasks that should take minutes.</p>
+    </div>
+    <div class="problem-cards reveal-right">
+      <div class="pc">
+        <div class="pc-ico">📋</div>
+        <div class="pc-ttl">No centralised tracking</div>
+        <div class="pc-dsc">Publications, grants, events — scattered across 15 different files with no single view.</div>
+      </div>
+      <div class="pc">
+        <div class="pc-ico">💸</div>
+        <div class="pc-ttl">Grant chaos</div>
+        <div class="pc-dsc">Budget allocations managed in email threads. Expense logs on paper. No audit trail.</div>
+      </div>
+      <div class="pc">
+        <div class="pc-ico">📚</div>
+        <div class="pc-ttl">Literature overwhelm</div>
+        <div class="pc-dsc">200+ papers with no matrix, no citation map, and no way to find what you read last week.</div>
+      </div>
+      <div class="pc">
+        <div class="pc-ico">⏰</div>
+        <div class="pc-ttl">Thesis drift</div>
+        <div class="pc-dsc">No timeline. No chapter tracking. Supervisor meetings with no structured logs.</div>
+      </div>
+      <div class="pc span2">
+        <div class="pc-ico">🔄</div>
+        <div>
+          <div class="pc-ttl">Manual reporting nightmare — every single appraisal cycle</div>
+          <div class="pc-dsc">Self-appraisals rebuilt from scratch each year. No carry-forward data. No auto-summaries. Hours spent compiling what should already be tracked.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     PRODUCTS
+══════════════════════════════════ -->
+<section id="products">
+  <div class="products-hd reveal">
+    <div class="section-label">The Suite</div>
+    <h2 class="section-h2">7 toolkits. Every part of your academic life, <em>covered.</em></h2>
+    <p class="section-body">Each toolkit is fully automated — dashboards self-update, summaries generate, and alerts fire when deadlines approach.</p>
+  </div>
+  <div class="products-grid">
+
+    <div class="prod-card hero-prod reveal" data-num="01">
+      <div class="hero-prod-inner">
+        <div>
+          <div class="prod-tag best">Most Complete</div>
+          <div class="prod-icon">📊</div>
+          <div class="prod-name">Academic Activity Tracker</div>
+          <div class="prod-desc">The flagship toolkit for faculty. 45+ sheets covering every aspect of academic life — from teaching loads to patent filings to CPD points.</div>
+        </div>
+        <div>
+          <div style="font-size:0.6rem;color:#ffffff;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">Includes 45+ sheets</div>
+          <div class="prod-pills">
+            <span class="prod-pill">Dashboard</span><span class="prod-pill">Teaching Load</span>
+            <span class="prod-pill">Publications</span><span class="prod-pill">Conferences</span>
+            <span class="prod-pill">Patents & IPR</span><span class="prod-pill">Mentoring</span>
+            <span class="prod-pill">H-Index Log</span><span class="prod-pill">Grant Pipeline</span>
+            <span class="prod-pill">Annual Summary</span><span class="prod-pill">Expiry Alerts</span>
+            <span class="prod-pill">CO-PO Attainment</span><span class="prod-pill">Accreditation Map</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prod-card reveal" data-num="02">
+      <div class="prod-accent"></div>
+      <div class="prod-tag">Submission</div>
+      <div class="prod-icon">📝</div>
+      <div class="prod-name">Article Submission Tracker</div>
+      <div class="prod-desc">Track every manuscript from draft to acceptance. Journals, deadlines, revision history.</div>
+      <div class="prod-pills"><span class="prod-pill">Article Tracker</span><span class="prod-pill">Dashboard & Legend</span></div>
+    </div>
+
+    <div class="prod-card reveal" data-num="03">
+      <div class="prod-accent"></div>
+      <div class="prod-tag">Finance</div>
+      <div class="prod-icon">💰</div>
+      <div class="prod-name">Academic Financial Management Suite</div>
+      <div class="prod-desc">Multi-grant tracking, expense logging with tax categories, APC planner, conference budgets.</div>
+      <div class="prod-pills"><span class="prod-pill">Multi-Grant Tracker</span><span class="prod-pill">Expense & Tax Log</span><span class="prod-pill">APC Planner</span></div>
+    </div>
+
+    <div class="prod-card reveal" data-num="04">
+      <div class="prod-accent"></div>
+      <div class="prod-tag">Research</div>
+      <div class="prod-icon">📚</div>
+      <div class="prod-name">Literature Review & Research Management</div>
+      <div class="prod-desc">Build a structured literature matrix, map citation relationships, and maintain a research dashboard.</div>
+      <div class="prod-pills"><span class="prod-pill">Literature Matrix</span><span class="prod-pill">Citation Mapping</span><span class="prod-pill">Dashboard</span></div>
+    </div>
+
+    <div class="prod-card reveal" data-num="05">
+      <div class="prod-accent"></div>
+      <div class="prod-tag">Thesis</div>
+      <div class="prod-icon">🎓</div>
+      <div class="prod-name">Thesis Planner</div>
+      <div class="prod-desc">Chapter tracker, Gantt timeline, research log, supervisor meeting notes, and a reference manager.</div>
+      <div class="prod-pills"><span class="prod-pill">Chapter Tracker</span><span class="prod-pill">Gantt Timeline</span><span class="prod-pill">Supervisor Meetings</span></div>
+    </div>
+
+    <div class="prod-card reveal" data-num="06">
+      <div class="prod-accent"></div>
+      <div class="prod-tag">Grants</div>
+      <div class="prod-icon">🔬</div>
+      <div class="prod-name">Research Grant Management System</div>
+      <div class="prod-desc">Manage grant overviews, budget allocations, and expense logs with visual charts.</div>
+      <div class="prod-pills"><span class="prod-pill">Grant Overview</span><span class="prod-pill">Budget Allocation</span><span class="prod-pill">Expense Chart</span></div>
+    </div>
+
+    <div class="prod-card reveal" data-num="07">
+      <div class="prod-accent"></div>
+      <div class="prod-tag">Students</div>
+      <div class="prod-icon">🗂️</div>
+      <div class="prod-name">Project Management System for Students</div>
+      <div class="prod-desc">A complete project system for undergraduate and postgraduate students. Dashboard, roadmap, finance tracker.</div>
+      <div class="prod-pills"><span class="prod-pill">Dashboard</span><span class="prod-pill">Project Roadmap</span><span class="prod-pill">Finance & Budget</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     FEATURES
+══════════════════════════════════ -->
+<section id="features">
+  <div class="features-hd reveal">
+    <div class="section-label" style="justify-content:center;">How It Works</div>
+    <h2 class="section-h2">Built for the way academics actually <em>work.</em></h2>
+  </div>
+  <div class="steps">
+
+    <div class="step reveal">
+      <div>
+        <div class="step-num">01</div>
+        <h3 class="step-title">Open, fill, and your dashboard updates automatically</h3>
+        <p class="step-body">No formulas to write. No pivot tables to refresh. Every toolkit is pre-built with live dashboards that recalculate the moment you enter data. Works on Excel 2016+, Microsoft 365, and Google Sheets.</p>
+        <ul class="step-list">
+          <li><span class="step-check">✓</span> Pre-built drop-down menus for consistent data entry</li>
+          <li><span class="step-check">✓</span> Colour-coded status tracking across every sheet</li>
+          <li><span class="step-check">✓</span> Automatic annual summary generation</li>
+          <li><span class="step-check">✓</span> Alert system for expiring certifications and deadlines</li>
+        </ul>
+      </div>
+      <div class="mockup">
+        <div class="mock-bar"><div class="m-dot m-r"></div><div class="m-dot m-y"></div><div class="m-dot m-g"></div><div class="mock-tab">Academic Activity Tracker — Dashboard</div></div>
+        <div class="mock-body">
+          <div class="mock-thead" style="grid-template-columns:2fr 1fr 1fr;"><span>Activity</span><span>Status</span><span>Score</span></div>
+          <div class="mock-tr" style="grid-template-columns:2fr 1fr 1fr;"><span>Q1 SCOPUS Publications</span><span><span class="s-pill sp-g">Done</span></span><span style="font-weight:600;color:#1a5e3a;">95%</span></div>
+          <div class="mock-tr" style="grid-template-columns:2fr 1fr 1fr;"><span>FRGS Grant Submission</span><span><span class="s-pill sp-y">In Progress</span></span><span style="font-weight:600;color:#92400e;">60%</span></div>
+          <div class="mock-tr" style="grid-template-columns:2fr 1fr 1fr;"><span>International Conference</span><span><span class="s-pill sp-b">Submitted</span></span><span>—</span></div>
+          <div class="mock-tr" style="grid-template-columns:2fr 1fr 1fr;"><span>PhD Student Supervision</span><span><span class="s-pill sp-g">Active</span></span><span style="font-weight:600;color:#1a5e3a;">100%</span></div>
+          <div style="margin-top:12px;">
+            <div style="font-size:0.62rem;color:#7a7770;margin-bottom:4px;">Annual KPI Progress</div>
+            <div class="mock-prog"><div class="mock-fill" style="width:78%"></div></div>
+            <div style="font-size:0.62rem;color:#1e5c5c;margin-top:4px;font-weight:500;">78% — On Track</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step flip reveal">
+      <div>
+        <div class="step-num">02</div>
+        <h3 class="step-title">Manage every grant from pipeline to final audit</h3>
+        <p class="step-body">The Grant Management System and Financial Suite work together to give you a real-time picture of every grant's health — budget utilised, balance remaining, and which expense categories are over-spending.</p>
+        <ul class="step-list">
+          <li><span class="step-check">✓</span> Multi-grant budget allocation with visual charts</li>
+          <li><span class="step-check">✓</span> Expense log with tax and APC categories</li>
+          <li><span class="step-check">✓</span> Conference and travel cost tracking</li>
+          <li><span class="step-check">✓</span> Consultancy income and personal wealth module</li>
+        </ul>
+      </div>
+      <div class="mockup">
+        <div class="mock-bar"><div class="m-dot m-r"></div><div class="m-dot m-y"></div><div class="m-dot m-g"></div><div class="mock-tab">Research Grant Management — Budget</div></div>
+        <div class="mock-body">
+          <div class="mock-thead" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><span>Grant</span><span>Allocated</span><span>Spent</span><span>Balance</span></div>
+          <div class="mock-tr" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><span>FRGS 2024/001</span><span>Rs. 180K</span><span>Rs. 62K</span><span style="color:#1a5e3a;font-weight:600;">Rs. 118K</span></div>
+          <div class="mock-tr" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><span>PRGS 2023/04</span><span>Rs. 95K</span><span>Rs. 88K</span><span style="color:#92400e;font-weight:600;">Rs. 7K</span></div>
+          <div class="mock-tr" style="grid-template-columns:1.5fr 1fr 1fr 1fr;"><span>Industry Grant</span><span>Rs. 220K</span><span>Rs. 41K</span><span style="color:#1a5e3a;font-weight:600;">Rs. 179K</span></div>
+          <div style="margin-top:12px;padding:12px;background:rgba(30,92,92,0.06);border-radius:6px;border:1px solid rgba(30,92,92,0.12);">
+            <div style="font-size:0.6rem;color:#1e5c5c;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Total Portfolio Balance</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:#0e0d0b;font-style:italic;margin-top:3px;">Rs. 304,000</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div>
+        <div class="step-num">03</div>
+        <h3 class="step-title">From 200 papers to structured insight — in one matrix</h3>
+        <p class="step-body">The Literature Review toolkit transforms your reading pile into a structured research asset. Build a literature matrix, map citation relationships, and generate a research summary you can paste directly into your manuscript.</p>
+        <ul class="step-list">
+          <li><span class="step-check">✓</span> Literature matrix with theme, gap, and method columns</li>
+          <li><span class="step-check">✓</span> Citation mapping to track source relationships</li>
+          <li><span class="step-check">✓</span> Auto-dashboard showing coverage by year and topic</li>
+          <li><span class="step-check">✓</span> Step-by-step instruction sheet included</li>
+        </ul>
+      </div>
+      <div class="mockup">
+        <div class="mock-bar"><div class="m-dot m-r"></div><div class="m-dot m-y"></div><div class="m-dot m-g"></div><div class="mock-tab">Literature Review — Matrix View</div></div>
+        <div class="mock-body">
+          <div class="mock-thead" style="grid-template-columns:1.8fr 0.7fr 1fr 0.6fr;"><span>Paper</span><span>Year</span><span>Theme</span><span>Gap?</span></div>
+          <div class="mock-tr" style="grid-template-columns:1.8fr 0.7fr 1fr 0.6fr;"><span style="font-size:0.65rem;">Smith et al. — AI in HE</span><span>2023</span><span style="font-size:0.65rem;">EdTech</span><span><span class="s-pill sp-r" style="font-size:0.58rem;">Yes</span></span></div>
+          <div class="mock-tr" style="grid-template-columns:1.8fr 0.7fr 1fr 0.6fr;"><span style="font-size:0.65rem;">Lee & Park — ML outcomes</span><span>2022</span><span style="font-size:0.65rem;">ML</span><span><span class="s-pill sp-g" style="font-size:0.58rem;">No</span></span></div>
+          <div class="mock-tr" style="grid-template-columns:1.8fr 0.7fr 1fr 0.6fr;"><span style="font-size:0.65rem;">Rahman — LLMs in research</span><span>2024</span><span style="font-size:0.65rem;">NLP</span><span><span class="s-pill sp-r" style="font-size:0.58rem;">Yes</span></span></div>
+          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="padding:10px;background:#f0f9ff;border-radius:5px;border:1px solid #bfdbfe;"><div style="font-size:0.58rem;color:#1e40af;">Papers Reviewed</div><div style="font-weight:700;color:#1e40af;font-size:1.1rem;">84</div></div>
+            <div style="padding:10px;background:#fef9e7;border-radius:5px;border:1px solid #fde68a;"><div style="font-size:0.58rem;color:#92400e;">Gaps Identified</div><div style="font-weight:700;color:#92400e;font-size:1.1rem;">23</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════ -->
+<section id="testimonials">
+  <div class="testi-hd reveal">
+    <div class="section-label" style="justify-content:center;">Reviews</div>
+    <h2 class="section-h2">What academics are <em>saying.</em></h2>
+  </div>
+  <div class="testi-grid">
+    <div class="tcard wide dark reveal">
+      <div class="tq-stars">★★★★★</div>
+      <div class="tq-mark">"</div>
+      <div class="tq-text">The Activity Tracker alone is worth 10× what I paid. I used to spend 3 hours building my annual self-appraisal from scratch. Now my department head actually uses my submission as the template for the rest of the faculty. Everything is there — publications, grants, mentoring, events — and it all auto-summarises at year-end.</div>
+      <div class="tcard-author">
+        <div class="ta-av" style="background:#2a4a8a;">AR</div>
+        <div><div class="ta-name" style="color:#fff;">Assoc. Prof. Dr. Ahmad R.</div><div class="ta-role">Faculty of Engineering, Universiti Malaya</div></div>
+      </div>
+    </div>
+    <div class="tcard reveal">
+      <div class="tq-stars">★★★★★</div>
+      <div class="tq-mark">"</div>
+      <div class="tq-text">I'm in my 3rd year of PhD and the Thesis Planner finally made me feel in control. The Gantt chart alone saved me from a very stressful conversation with my supervisor.</div>
+      <div class="tcard-author">
+        <div class="ta-av" style="background:#1e5c5c;">SK</div>
+        <div><div class="ta-name">Sarah K.</div><div class="ta-role">PhD Candidate, NUS Singapore</div></div>
+      </div>
+    </div>
+    <div class="tcard reveal">
+      <div class="tq-stars">★★★★☆</div>
+      <div class="tq-mark">"</div>
+      <div class="tq-text">The Grant Management System is exactly what our research office needed. We manage 8 active grants and the portfolio view is genuinely brilliant.</div>
+      <div class="tcard-author">
+        <div class="ta-av" style="background:#7a3a1e;">NB</div>
+        <div><div class="ta-name">Dr. Nadia B.</div><div class="ta-role">Research Manager, UTM</div></div>
+      </div>
+    </div>
+    <div class="tcard reveal">
+      <div class="tq-stars">★★★★★</div>
+      <div class="tq-mark">"</div>
+      <div class="tq-text">Got the Literature Review tool for my systematic review. The citation mapping feature is something I didn't know I needed until I had it. My methodology chapter practically wrote itself.</div>
+      <div class="tcard-author">
+        <div class="ta-av" style="background:#4a3a8a;">LM</div>
+        <div><div class="ta-name">Dr. Lena M.</div><div class="ta-role">Postdoctoral Researcher, Oxford</div></div>
+      </div>
+    </div>
+    <div class="tcard reveal">
+      <div class="tq-stars">★★★★★</div>
+      <div class="tq-mark">"</div>
+      <div class="tq-text">I recommended the full suite to every junior faculty member in my school. The Article Submission Tracker alone has saved so many missed deadline nightmares.</div>
+      <div class="tcard-author">
+        <div class="ta-av" style="background:#c0392b;">RT</div>
+        <div><div class="ta-name">Prof. Dr. Ravi T.</div><div class="ta-role">Dean, School of Science, UiTM</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="stats-band reveal">
+    <div class="stat-c"><div class="stat-num">2,4<span>00</span>+</div><div class="stat-lbl">Academics using AcademiTools</div></div>
+    <div class="stat-c"><div class="stat-num">4.<span>9</span>★</div><div class="stat-lbl">Average rating across all tools</div></div>
+    <div class="stat-c"><div class="stat-num">45<span>+</span></div><div class="stat-lbl">Pre-built sheets per toolkit</div></div>
+    <div class="stat-c"><div class="stat-num">100<span>%</span></div><div class="stat-lbl">Ready to use — zero setup needed</div></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     PRICING
+══════════════════════════════════ -->
+<section id="pricing">
+  <div class="pricing-glow"></div>
+  <div class="pricing-hd reveal">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-h2">One-time payment. Yours <em>forever.</em></h2>
+    <p class="section-body">No subscriptions. No renewals. Download once, use for life — and receive all future updates at no charge.</p>
+  </div>
+  <div class="pricing-cards">
+    <div class="p-card reveal">
+      <div class="p-name">Starter</div>
+      <div class="p-price"><sup>₹</sup>236 <sub>/ toolkit</sub></div>
+      <div class="p-desc">Any single toolkit of your choice</div>
+      <div class="p-divider"></div>
+      <ul class="p-feats">
+        <li class="p-feat">1 toolkit of your choice</li>
+        <li class="p-feat">All sheets & dashboards</li>
+        <li class="p-feat">Lifetime access & updates</li>
+        <li class="p-feat">Excel & Google Sheets compatible</li>
+        <li class="p-feat off">Bundle discount</li>
+        <li class="p-feat off">Priority email support</li>
+      </ul>
+      <a href="https://rzp.io/rzp/m7B71uy" target="_blank" rel="noopener" class="btn-p-ghost">Choose a Toolkit →</a>
+    </div>
+    <div class="p-card featured reveal">
+      <div class="p-badge">⭐ Best Value</div>
+      <div class="p-name">Full Suite</div>
+      <div class="p-price"><sup>₹</sup>999 <sub>/ all 7</sub></div>
+      <div class="p-desc">All 7 toolkits — save over 70%</div>
+      <div class="p-divider"></div>
+      <ul class="p-feats">
+        <li class="p-feat">All 7 professional toolkits</li>
+        <li class="p-feat">Activity Tracker (45+ sheets)</li>
+        <li class="p-feat">Thesis Planner & Gantt</li>
+        <li class="p-feat">Financial Management Suite</li>
+        <li class="p-feat">Student Project System</li>
+        <li class="p-feat">Priority email support</li>
+      </ul>
+      <a href="https://rzp.io/rzp/m7B71uy" target="_blank" rel="noopener" class="btn-p-dark">Get the Full Suite →</a>
+    </div>
+  </div>
+  <div class="p-note reveal">
+    <span>Instant download</span>
+    <span class="p-note-sep">·</span>
+    <span>30-day money-back guarantee</span>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     FAQ
+══════════════════════════════════ -->
+<section id="faq">
+  <div class="faq-wrap">
+    <div class="faq-hd reveal">
+      <div class="section-label" style="justify-content:center;">FAQ</div>
+      <h2 class="section-h2">Common <em>questions.</em></h2>
+    </div>
+    <div id="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Does this work with Google Sheets or only Excel?<div class="faq-ico">+</div></button>
+        <div class="faq-a">All 7 toolkits are compatible with both Microsoft Excel (2016 and above, including Microsoft 365) and Google Sheets. Some advanced features like conditional formatting rules may render slightly differently in Google Sheets, but all core dashboards and tracking functions work fully on both platforms.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Do I need to know Excel formulas to use these?<div class="faq-ico">+</div></button>
+        <div class="faq-a">No. All formulas, dashboards, and automation are pre-built. You only need to fill in the data fields — the toolkits handle all calculations, summaries, and dashboard updates automatically. Each toolkit includes an instruction sheet to get you started in under 10 minutes.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can I customise the toolkits for my institution's requirements?<div class="faq-ico">+</div></button>
+        <div class="faq-a">Yes, absolutely. All files are fully unlocked (no protected sheets or hidden content). You can add custom columns, rename categories, adjust drop-down lists, and modify any sheet to match your institution's appraisal criteria, grant naming conventions, or reporting formats.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">What happens after I purchase? How do I receive the files?<div class="faq-ico">+</div></button>
+        <div class="faq-a">You'll receive an email immediately after purchase via secure payment. The .xlsx files are available for instant download. There's no software to install — just open the file in Excel or upload to Google Sheets.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Do you offer institutional or department-wide licensing?<div class="faq-ico">+</div></button>
+        <div class="faq-a">Yes. If you'd like to deploy AcademiTools across an entire faculty, department, or university, we offer institutional licensing at significantly reduced per-seat rates. Contact us via email with your institution name and estimated user count for a custom quote.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Is there a refund policy?<div class="faq-ico">+</div></button>
+        <div class="faq-a">We offer a 30-day no-questions-asked refund policy. If the toolkits aren't the right fit for your workflow, email us within 30 days of purchase and we'll refund you in full. We process all refunds within 3 business days.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Will I receive future updates to the toolkits?<div class="faq-ico">+</div></button>
+        <div class="faq-a">Yes. All purchases include lifetime updates. When we add new sheets, features, or improvements to a toolkit, you'll receive an email notification with the updated file download link at no additional charge.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     CTA FINAL
+══════════════════════════════════ -->
+<section id="cta-final">
+  <div class="cta-bg-ring ring-1"></div>
+  <div class="cta-bg-ring ring-2"></div>
+  <div class="cta-bg-ring ring-3"></div>
+  <div class="cta-inner reveal">
+    <div class="cta-eyebrow">✦ Start Today</div>
+    <h2 class="cta-h2">Stop managing your research.<br>Start <em>doing</em> it.</h2>
+    <p class="cta-sub">Every hour you spend rebuilding spreadsheets, searching for old notes, and manually summarising your year is an hour not spent on research that matters. AcademiTools gives you those hours back.</p>
+    <div class="cta-btns">
+      <a href="https://rzp.io/rzp/m7B71uy" target="_blank" rel="noopener" class="btn-cta-gold">Download the Full Suite — ₹999 →</a>
+      <a href="https://rzp.io/rzp/m7B71uy" target="_blank" rel="noopener" class="btn-cta-outline">Browse Individual Tools</a>
+    </div>
+    <div class="cta-guarantee">
+      <span class="cta-guarantee-check">✓</span>
+      <span>30-day money-back guarantee</span>
+      <span class="cta-guarantee-sep">·</span>
+      <span>Instant download</span>
+      <span class="cta-guarantee-sep">·</span>
+      <span>Lifetime updates</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     FOOTER
+══════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">AcademiTools</div>
+    <div class="footer-copy">© 2025 AcademiTools. All rights reserved.</div>
+    <div class="footer-links">
+      <a href="#">LinkedIn</a>
+      <a href="#">Instagram</a>
+      <a href="#">X / Twitter</a>
+      <a href="#">ResearchGate</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── Custom cursor ── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cur.style.left = mx+'px'; cur.style.top = my+'px'; });
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx+'px';
+  ring.style.top = ry+'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+document.querySelectorAll('a,button,.prod-card,.tcard,.pc').forEach(el => {
+  el.addEventListener('mouseenter', () => { cur.style.width='14px'; cur.style.height='14px'; ring.style.width='50px'; ring.style.height='50px'; ring.style.borderColor='rgba(200,168,75,0.6)'; });
+  el.addEventListener('mouseleave', () => { cur.style.width='8px'; cur.style.height='8px'; ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(200,168,75,0.4)'; });
+});
+
+/* ── Scroll reveal ── */
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 70);
+      obs.unobserve(e.target);
     }
-    .container {
-      max-width 400px;
-      margin 50px auto;
-      padding 30px;
-      background #ffffff;
-      border-radius 12px;
-      box-shadow 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align center;
-      color #2c3e50;
-    }
-    form {
-      display flex;
-      flex-direction column;
-    }
-    label {
-      margin-top 10px;
-      font-weight 600;
-    }
-    input {
-      padding 10px;
-      margin-top 5px;
-      border 1px solid #ccc;
-      border-radius 6px;
-    }
-    button {
-      margin-top 20px;
-      padding 12px;
-      background-color #2980b9;
-      color white;
-      border none;
-      border-radius 6px;
-      cursor pointer;
-      font-size 16px;
-    }
-    buttonhover {
-      background-color #1c5980;
-    }
-    .link {
-      margin-top 15px;
-      text-align center;
-    }
-    .link a {
-      color #2980b9;
-      text-decoration none;
-    }
-  style
-head
-body
-  div class=container id=signup
-    h2Sign Uph2
-    form onsubmit=signup(event)
-      label for=emailEmaillabel
-      input type=email id=email name=email required 
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -50px 0px' });
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach(el => obs.observe(el));
 
-      label for=passwordPasswordlabel
-      input type=password id=password name=password required 
-
-      button type=submitSign Upbutton
-    form
-    div class=link
-      Already have an account a href=#loginLog Ina
-    div
-  div
-
-  div class=container id=login style=displaynone;
-    h2Log Inh2
-    form onsubmit=login(event)
-      label for=login-emailEmaillabel
-      input type=email id=login-email name=login-email required 
-
-      label for=login-passwordPasswordlabel
-      input type=password id=login-password name=login-password required 
-
-      button type=submitLog Inbutton
-    form
-    div class=link
-      Forgot Password a href=#forgotClick hereabr
-      Don’t have an account a href=#signupSign Upa
-    div
-  div
-
-  div class=container id=forgot style=displaynone;
-    h2Forgot Passwordh2
-    form onsubmit=forgotPassword(event)
-      label for=forgot-emailEmaillabel
-      input type=email id=forgot-email name=forgot-email required 
-      button type=submitReset Passwordbutton
-    form
-    div class=link
-      Back to a href=#loginLogina
-    div
-  div
-
-  div class=container id=profile style=displaynone;
-    h2Profileh2
-    form
-      label for=nameNamelabel
-      input type=text id=name name=name required 
-
-      label for=mobileMobilelabel
-      input type=text id=mobile name=mobile required 
-
-      label for=email-profileEmaillabel
-      input type=email id=email-profile name=email-profile required 
-
-      label for=idIDPassportlabel
-      input type=text id=id name=id required 
-
-      button type=submitSavebutton
-    form
-  div
-
-  script
-    const firebaseConfig = {
-      apiKey AIzaSyBtA4OK9yLhsNVR4A8AwhiitmmBuf2JH_c,
-      authDomain research-consult.firebaseapp.com,
-      projectId research-consult,
-      storageBucket research-consult.firebasestorage.app,
-      messagingSenderId 12427824925,
-      appId 112427824925webd8ad15c3686bf10c555bf4,
-      measurementId G-XY52SN3L18
-    };
-
-    firebase.initializeApp(firebaseConfig);
-
-    function signup(event) {
-      event.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then(() = {
-          alert('Signup successful');
-          window.location.hash = 'login';
-        })
-        .catch(error = alert(error.message));
-    }
-
-    function login(event) {
-      event.preventDefault();
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(() = {
-          alert('Login successful');
-          window.location.hash = 'profile';
-        })
-        .catch(error = alert(error.message));
-    }
-
-    function forgotPassword(event) {
-      event.preventDefault();
-      const email = document.getElementById('forgot-email').value;
-      firebase.auth().sendPasswordResetEmail(email)
-        .then(() = alert('Reset link sent'))
-        .catch(error = alert(error.message));
-    }
-
-    const routes = ['signup', 'login', 'forgot', 'profile'];
-    function navigate() {
-      const hash = window.location.hash.substring(1);
-      routes.forEach(route = {
-        document.getElementById(route).style.display = (route === hash)  'block'  'none';
-      });
-    }
-    window.addEventListener('hashchange', navigate);
-    navigate();
-  script
-body
-html
+/* ── FAQ ── */
+function toggleFaq(btn) {
+  const item = btn.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>
