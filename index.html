@@ -1,0 +1,186 @@
+!DOCTYPE html
+html lang=en
+head
+  meta charset=UTF-8 
+  meta name=viewport content=width=device-width, initial-scale=1.0 
+  titleResearch365 Plannertitle
+  script src=httpswww.gstatic.comfirebasejs9.22.2firebase-app-compat.jsscript
+  script src=httpswww.gstatic.comfirebasejs9.22.2firebase-auth-compat.jsscript
+  style
+    body {
+      font-family 'Segoe UI', sans-serif;
+      background-color #f4f7fa;
+      margin 0;
+      padding 0;
+    }
+    .container {
+      max-width 400px;
+      margin 50px auto;
+      padding 30px;
+      background #ffffff;
+      border-radius 12px;
+      box-shadow 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align center;
+      color #2c3e50;
+    }
+    form {
+      display flex;
+      flex-direction column;
+    }
+    label {
+      margin-top 10px;
+      font-weight 600;
+    }
+    input {
+      padding 10px;
+      margin-top 5px;
+      border 1px solid #ccc;
+      border-radius 6px;
+    }
+    button {
+      margin-top 20px;
+      padding 12px;
+      background-color #2980b9;
+      color white;
+      border none;
+      border-radius 6px;
+      cursor pointer;
+      font-size 16px;
+    }
+    buttonhover {
+      background-color #1c5980;
+    }
+    .link {
+      margin-top 15px;
+      text-align center;
+    }
+    .link a {
+      color #2980b9;
+      text-decoration none;
+    }
+  style
+head
+body
+  div class=container id=signup
+    h2Sign Uph2
+    form onsubmit=signup(event)
+      label for=emailEmaillabel
+      input type=email id=email name=email required 
+
+      label for=passwordPasswordlabel
+      input type=password id=password name=password required 
+
+      button type=submitSign Upbutton
+    form
+    div class=link
+      Already have an account a href=#loginLog Ina
+    div
+  div
+
+  div class=container id=login style=displaynone;
+    h2Log Inh2
+    form onsubmit=login(event)
+      label for=login-emailEmaillabel
+      input type=email id=login-email name=login-email required 
+
+      label for=login-passwordPasswordlabel
+      input type=password id=login-password name=login-password required 
+
+      button type=submitLog Inbutton
+    form
+    div class=link
+      Forgot Password a href=#forgotClick hereabr
+      Don’t have an account a href=#signupSign Upa
+    div
+  div
+
+  div class=container id=forgot style=displaynone;
+    h2Forgot Passwordh2
+    form onsubmit=forgotPassword(event)
+      label for=forgot-emailEmaillabel
+      input type=email id=forgot-email name=forgot-email required 
+      button type=submitReset Passwordbutton
+    form
+    div class=link
+      Back to a href=#loginLogina
+    div
+  div
+
+  div class=container id=profile style=displaynone;
+    h2Profileh2
+    form
+      label for=nameNamelabel
+      input type=text id=name name=name required 
+
+      label for=mobileMobilelabel
+      input type=text id=mobile name=mobile required 
+
+      label for=email-profileEmaillabel
+      input type=email id=email-profile name=email-profile required 
+
+      label for=idIDPassportlabel
+      input type=text id=id name=id required 
+
+      button type=submitSavebutton
+    form
+  div
+
+  script
+    const firebaseConfig = {
+      apiKey AIzaSyBtA4OK9yLhsNVR4A8AwhiitmmBuf2JH_c,
+      authDomain research-consult.firebaseapp.com,
+      projectId research-consult,
+      storageBucket research-consult.firebasestorage.app,
+      messagingSenderId 12427824925,
+      appId 112427824925webd8ad15c3686bf10c555bf4,
+      measurementId G-XY52SN3L18
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    function signup(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(() = {
+          alert('Signup successful');
+          window.location.hash = 'login';
+        })
+        .catch(error = alert(error.message));
+    }
+
+    function login(event) {
+      event.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() = {
+          alert('Login successful');
+          window.location.hash = 'profile';
+        })
+        .catch(error = alert(error.message));
+    }
+
+    function forgotPassword(event) {
+      event.preventDefault();
+      const email = document.getElementById('forgot-email').value;
+      firebase.auth().sendPasswordResetEmail(email)
+        .then(() = alert('Reset link sent'))
+        .catch(error = alert(error.message));
+    }
+
+    const routes = ['signup', 'login', 'forgot', 'profile'];
+    function navigate() {
+      const hash = window.location.hash.substring(1);
+      routes.forEach(route = {
+        document.getElementById(route).style.display = (route === hash)  'block'  'none';
+      });
+    }
+    window.addEventListener('hashchange', navigate);
+    navigate();
+  script
+body
+html
